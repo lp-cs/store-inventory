@@ -11,7 +11,7 @@ Base = declarative_base()
 class Brands(Base):
     __tablename__ = 'brands'
 
-    brand_id  = Column(Integer, primary_key=True)
+    brand_id = Column(Integer, primary_key=True)
     brand_name = Column('Brand Name', String)
 
     def __repr__(self):
