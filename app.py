@@ -127,6 +127,26 @@ def clean_quantity(quantity):
         return(quantity)
 
 
+def add_new_brand(brand_name):
+    new_brand = Brands(brand_name=brand_name)
+    session.add(new_brand)
+    session.commit()
+    print(f'{brand_name} has been added')
+    return new_brand
+
+
+def add_new_product(product_name, product_price, product_quantity, date_updated, brand_id):
+    new_product = Product(product_name=product_name,
+                          product_price=product_price,
+                          product_quantity=product_quantity,
+                          date_updated=date_updated,
+                          brand_id=brand_id)
+    session.add(new_product)
+    session.commit()
+    print(f'{product_name} has been added')
+    return
+
+
 def app():
     app_running = True
     while app_running:
@@ -161,10 +181,7 @@ def app():
                     brand_id_choice = clean_brand_id(brand_id_choice, brand_id_options)
 
                 if type(brand_id_choice) == int:
-                    new_product = Product(product_name=product_name, product_price=product_price, product_quantity=product_quantity, date_updated=date_updated, brand_id=brand_id_choice)
-                    session.add(new_product)
-                    session.commit()
-                    print(f'{product_name} has been added')
+                    add_new_product(product_name, product_price, product_quantity, date_updated, brand_id_choice)
                     brand_id_error = False
 
                 elif brand_id_choice == 'X':
@@ -173,24 +190,12 @@ def app():
                         new_brand = input("What is the name of the brand? ")
                         brand_in_db = session.query(Brands).filter(Brands.brand_name == new_brand).one_or_none()
                         if brand_in_db == None:
-                            new_brand = Brands(brand_name=new_brand)
-                            session.add(new_brand)
-                            session.commit()
-                            new_product = Product(product_name=product_name, product_price=product_price,
-                                                  product_quantity=product_quantity, date_updated=date_updated,
-                                                  brand_id=new_brand.brand_id)
-                            print(f'{new_brand.brand_name} has been added')
-                            time.sleep(1.5)
-                            session.add(new_product)
-                            session.commit()
-                            print(f'{product_name} has been added')
+                            new_brand = add_new_brand(new_brand)
+                            add_new_product(product_name, product_price, product_quantity, date_updated, new_brand.brand_id)
                             brand_in_db_error = False
                             brand_id_error = False
                         else:
                             print(f'{new_brand} already exist. Please try again!')
-
-
-
 
         elif choice == 'V':
             id_options = []
@@ -261,4 +266,24 @@ if __name__ == "__main__":
     app()
 
 
-## UPNEXT: STEP 15
+# ## GOING FOR EXTRA CREDITS
+# Avoiding duplicate products
+# When importing product data into the database from inventory.csv file,
+# add an additional check before that product is added so that if a duplicate product name is found,
+# the app will save the data that was most recently updated for that existing record.
+# A good way to build and test this is to duplicate the last item in inventory.csv and changing the date.
+
+# Menu option: V
+# When viewing a product, the user should have the ability to edit or delete the product.
+# When viewing the product, the brand name should be displayed instead of the brand id
+
+# Menu option: N
+# When selecting option N, if a duplicate product name is found while the product is attempting to be added to the database,
+# the app will check to see which product entry was most recently updated and only save that data.
+
+# Menu option: A
+# When selecting option A, you’ve provided more analysis data beyond the three in the instructions.
+
+# When selecting option B, the backup CSV output file should contain a single header row with all the appropriate field titles.
+# This backup.csv should be formatted exactly the same way as inventory.csv,
+# so much so that it can replace inventory.csv and the app will still import data correctly.
