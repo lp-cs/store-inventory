@@ -1,5 +1,7 @@
 from models import (Base, session, Brands, Product, engine)
 
+from collections import Counter
+
 from datetime import datetime
 import csv
 import time
@@ -58,21 +60,13 @@ def clean_product_id(id_str, options):
     try:
         product_id = int(id_str)
     except ValueError:
-        input('''
-                \n***** ID ERROR ********
-                \rThe ID should be a number.
-                \rPress enter to try again
-                \r***********************''')
+        print('Invalid Entry. The ID should be a number.')
         return
     else:
         if product_id in options:
             return product_id
         else:
-            input(f'''
-                \n***** ID ERROR ********
-                \rOptions: {options}
-                \rPress enter to try again
-                \r***********************''')
+            print(f'Invalid Entry. Options: {options}')
             return
 
 
@@ -80,24 +74,13 @@ def clean_brand_id(id_str, options):
     try:
         brand_id = int(id_str)
     except ValueError:
-        input('''
-                \n***** ID ERROR ********
-                \rThe ID should be a number.
-                \rPress enter to try again
-                \r***********************''')
+        print('Invalid entry. Please Try Again!')
         return
     else:
         if brand_id in options:
             return brand_id
         else:
-            print(f'''
-                \n***** ID ERROR ********
-                \rPress enter to try again
-                ''')
-            next(session.query(Brands).order_by(Brands.brand_id))  ## This is the Header
-            for brand in session.query(Brands).order_by(Brands.brand_id):
-                print(f'{brand.brand_id}) {brand.brand_name}')
-            print('\r***********************')
+            print('Invalid entry. Please Try Again!')
             return
 
 
@@ -115,10 +98,7 @@ def clean_date(date_str):
         year = int(split_date[2])
         return_date = datetime(year, month, day)
     except ValueError:
-        input('''
-            \n***** DATE ERROR *****
-            \rPress enter to try again
-            \r**********************''')
+        print('Invalid date format. Please Try Again!')
         return
     else:
         return return_date
@@ -133,12 +113,7 @@ def clean_price(price_str):
     try:
         price_float = float(price_str)
     except ValueError:
-        input('''
-                    \n***** PRICE ERROR *****
-                    \rThe price should be a number without a currency symbol.
-                    \r Ex: 10.99
-                    \rPress enter to try again
-                    \r***********************''')
+        print('Invalid entry. The price should be a number without a currency symbol (Ex. 8.99). Please Try Again!')
     else:
         return int(price_float * 100)
 
@@ -147,11 +122,7 @@ def clean_quantity(quantity):
     try:
         quantity = int(quantity)
     except ValueError:
-        input('''
-            \n********* QUANTITY ERROR *******
-            \rThe quantity should be a whole positive number (Ex. 4).
-            \rPress enter to try again.
-            \r********************************''')
+        print('Invalid Entry. The quantity should be a whole positive number (Ex. 4). Please Try Again!')
     else:
         return(quantity)
 
@@ -180,46 +151,45 @@ def app():
             for brand in session.query(Brands).order_by(Brands.brand_id):
                 print(f'{brand.brand_id}) {brand.brand_name}')
                 brand_id_options.append(brand.brand_id)
-            brand_id_error = True
 
+            brand_id_error = True
             while brand_id_error:
                 brand_id_choice = input("Please choose the number for the corresponding brand or press 'X' if the brand is not listed. ")
                 if brand_id_choice.upper() == 'X':
                     brand_id_choice = brand_id_choice.upper()
                 else:
                     brand_id_choice = clean_brand_id(brand_id_choice, brand_id_options)
-                brand_id_error = False
 
-                brand_choice_error = True
-                while brand_choice_error:
-                    if type(brand_id_choice) == int:
-                        new_product = Product(product_name=product_name, product_price=product_price, product_quantity=product_quantity, date_updated=date_updated, brand_id=brand_id_choice)
-
-                    elif brand_id_choice == 'X':
-                        brand_in_db_error = True
-                        while brand_in_db_error:
-                            new_brand = input("What is the name of the brand? ")
-                            brand_in_db = session.query(Brands).filter(Brands.brand_name == new_brand).one_or_none()
-                            if brand_in_db == None:
-                                new_brand = Brands(brand_name=new_brand)
-                                session.add(new_brand)
-                                session.commit()
-                                new_product = Product(product_name=product_name, product_price=product_price,
-                                                      product_quantity=product_quantity, date_updated=date_updated,
-                                                      brand_id=new_brand.brand_id)
-                                print(f'{new_brand} has been added')
-                                time.sleep(1.5)
-                                brand_in_db_error = False
-                            else:
-                                print(f'{new_brand} already exist. Please try again!')
-                    else:
-                        break
-
+                if type(brand_id_choice) == int:
+                    new_product = Product(product_name=product_name, product_price=product_price, product_quantity=product_quantity, date_updated=date_updated, brand_id=brand_id_choice)
                     session.add(new_product)
                     session.commit()
                     print(f'{product_name} has been added')
-                    time.sleep(1.5)
-                    brand_choice_error = False
+                    brand_id_error = False
+
+                elif brand_id_choice == 'X':
+                    brand_in_db_error = True
+                    while brand_in_db_error:
+                        new_brand = input("What is the name of the brand? ")
+                        brand_in_db = session.query(Brands).filter(Brands.brand_name == new_brand).one_or_none()
+                        if brand_in_db == None:
+                            new_brand = Brands(brand_name=new_brand)
+                            session.add(new_brand)
+                            session.commit()
+                            new_product = Product(product_name=product_name, product_price=product_price,
+                                                  product_quantity=product_quantity, date_updated=date_updated,
+                                                  brand_id=new_brand.brand_id)
+                            print(f'{new_brand.brand_name} has been added')
+                            time.sleep(1.5)
+                            session.add(new_product)
+                            session.commit()
+                            print(f'{product_name} has been added')
+                            brand_in_db_error = False
+                            brand_id_error = False
+                        else:
+                            print(f'{new_brand} already exist. Please try again!')
+
+
 
 
         elif choice == 'V':
@@ -243,12 +213,46 @@ def app():
                 \rDate Updated: {the_product.date_updated}''')
 
         elif choice == 'A':
-            pass
+            print("Analyzing Database...")
+            # What is the most expensive item in the database?
+            most_expensive = session.query(Product).order_by(Product.product_price.desc()).first()
+            print(f'\nThe most expensive product is: {most_expensive.product_name} \nThe price is: ${most_expensive.product_price/100:.2f}')
+
+            # What is the least expensive item?
+            least_expensive = session.query(Product).order_by(Product.product_price).first()
+            print(f'\nThe least expensive product is: {least_expensive.product_name} \nThe price is: ${least_expensive.product_price/100:.2f}')
+
+            # Which brand has the most products in the database?
+            # concept from https://bobbyhadz.com/blog/python-find-most-common-element-in-list
+            brand_id_in_products = []
+            for product in session.query(Product):
+                brand_id_in_products.append(product.brand_id)
+            most_common = find_brand_name(Counter(brand_id_in_products).most_common(1)[0][0])
+            print(f'\nThe most common brand is: {most_common}')
+
         elif choice == 'B':
-            pass
+            # https://docs.python.org/3/library/csv.html
+            print("Backing up data...")
+
+            with open('inventory_backup.csv', 'w', newline='') as csvfile:
+                productwriter = csv.writer(csvfile)
+                productwriter.writerow(['product_id', 'product_name', 'product_quantity', 'product_price', 'date_updated', 'brand_id'])
+                for product in session.query(Product).order_by(Product.product_id):
+                    productwriter.writerow([product.product_id, product.product_name, product.product_quantity, product.product_price, product.brand_id, product.date_updated])
+
+            with open('brands_backup.csv', 'w', newline='') as csvfile:
+                brandswriter = csv.writer(csvfile)
+                brandswriter.writerow(['brand_id', 'brand_name'])
+                for brand in session.query(Brands).order_by(Brands.brand_id):
+                    brandswriter.writerow([brand.brand_id, brand.brand_name])
+
+            print("Your database has been backed up!")
+
         else:
             print('Closing App. Goodbye!')
             app_running = False
+
+        input("\nPress enter to return to the main menu")
 
 
 if __name__ == "__main__":
