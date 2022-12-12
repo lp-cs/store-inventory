@@ -11,8 +11,8 @@ Base = declarative_base()
 class Brands(Base):
     __tablename__ = 'brands'
 
-    brand_id = Column(Integer, primary_key=True)
-    brand_name = Column('Brand Name', String)
+    brand_id = Column('brand_id', Integer, primary_key=True)
+    brand_name = Column('brand_name', String)
 
     def __repr__(self):
         return f'''
@@ -24,12 +24,12 @@ class Brands(Base):
 class Product(Base):
     __tablename__ = 'product'
 
-    product_id = Column(Integer, primary_key=True)
-    product_name = Column('Product Name', String)
-    product_quantity = Column('Product Quantity',Integer)
-    product_price = Column('Product Price',Integer)
-    date_updated = Column('Date Updated', Date)
-    brand_id = Column(Integer, ForeignKey("brands.brand_id"))
+    product_id = Column('product_id',Integer, primary_key=True)
+    product_name = Column('product_name', String)
+    product_quantity = Column('product_quantity',Integer)
+    product_price = Column('product_price',Integer)
+    date_updated = Column('date_updated', Date)
+    brand_id = Column('brand_id',Integer, ForeignKey("brands.brand_id"))
 
     def __repr__(self):
         return f'''
