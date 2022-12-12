@@ -44,15 +44,25 @@ def add_csv():
         data = csv.reader(csvfile)
         header = next(data)  ## This is the Header
         for row in data:
+            product_name = row[0]
+            product_quantity = clean_quantity(row[2])
+            product_price = clean_product_price(row[1])
+            date_updated = clean_date(row[3])
+            brand_id = session.query(Brands).filter(Brands.brand_name == row[4]).one().brand_id
             product_in_db = session.query(Product).filter(Product.product_name == row[0]).one_or_none()
             if product_in_db == None:
-                product_name = row[0]
-                product_quantity = clean_quantity(row[2])
-                product_price = clean_product_price(row[1])
-                date_updated = clean_date(row[3])
-                brand_id = session.query(Brands).filter(Brands.brand_name == row[4]).one().brand_id
                 new_product = Product(product_name=product_name, product_quantity=product_quantity, product_price=product_price, date_updated=date_updated, brand_id=brand_id)
                 session.add(new_product)
+            elif product_in_db.date_updated < date_updated:
+                product_in_db.product_quantity = product_quantity
+                product_in_db.product_price = product_price
+                product_in_db.date_updated = date_updated
+                brand_in_db = session.query(Brands).filter(Brands.brand_name == brand_name).one_or_none()
+                if brand_in_db == None:
+                    new_brand = Brands(brand_name=product_brand)
+                    session.add(new_brand)
+                    session.commit()
+                product_in_db.brand_id = find_brand_id_from_brand(brand_name)
             session.commit()
 
 
