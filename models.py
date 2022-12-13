@@ -24,12 +24,12 @@ class Brands(Base):
 class Product(Base):
     __tablename__ = 'product'
 
-    product_id = Column('product_id',Integer, primary_key=True)
+    product_id = Column('product_id', Integer, primary_key=True)
     product_name = Column('product_name', String)
-    product_quantity = Column('product_quantity',Integer)
-    product_price = Column('product_price',Integer)
+    product_quantity = Column('product_quantity', Integer)
+    product_price = Column('product_price', Integer)
     date_updated = Column('date_updated', Date)
-    brand_id = Column('brand_id',Integer, ForeignKey("brands.brand_id"))
+    brand_id = Column('brand_id', Integer, ForeignKey("brands.brand_id"))
 
     def __repr__(self):
         return f'''
