@@ -84,10 +84,9 @@ def add_csv_products():
                 product_in_db.date_updated = date_updated
                 brand_in_db = session.query(Brands).filter(Brands.brand_name == row[4]).one_or_none()
                 if brand_in_db == None:
-                    new_brand = Brands(brand_name=product_brand)
+                    new_brand = Brands(brand_name=row[4])
                     session.add(new_brand)
-                    session.commit()
-                product_in_db.brand_id = find_brand_name(brand_id)
+                product_in_db.brand_id = find_brand_id(row[4])
         session.commit()
 
 
@@ -141,7 +140,12 @@ def clean_date(date_str):
 
 def find_brand_name(brand_id):
     brand = session.query(Brands).filter(Brands.brand_id == brand_id).first()
-    return(brand.brand_name)
+    return (brand.brand_name)
+
+
+def find_brand_id(brand_name):
+    brand = session.query(Brands).filter(Brands.brand_name == brand_name).first()
+    return (brand.brand_id)
 
 
 def clean_price(price_str):
@@ -207,12 +211,12 @@ def app():
             product_name = input('What is the name of the product? ')
             product_in_db = session.query(Product).filter(Product.product_name == product_name).one_or_none()
             if product_in_db != None:
-                print(f'\n{the_product.product_name} Exist. Updating {the_product.product_name}')
-                the_product.product_price = edit_check('product_price', the_product.product_price)
-                the_product.product_quantity = edit_check('product_quantity', the_product.product_quantity)
-                the_product.date_updated = datetime.now()
+                print(f'\n{product_in_db.product_name} Exist. Updating {product_in_db.product_name}')
+                product_in_db.product_price = edit_check('product_price', product_in_db.product_price)
+                product_in_db.product_quantity = edit_check('product_quantity', product_in_db.product_quantity)
+                product_in_db.date_updated = datetime.now()
                 session.commit()
-                print(f'{the_product.product_name} has been updated')
+                print(f'{product_in_db.product_name} has been updated')
                 time.sleep(1)
             else:
                 price_error = True
@@ -356,15 +360,22 @@ def app():
 
             with open('inventory_backup.csv', 'w', newline='') as csvfile:
                 productwriter = csv.writer(csvfile)
-                productwriter.writerow(['product_id', 'product_name', 'product_quantity', 'product_price', 'date_updated', 'brand_id'])
+                productwriter.writerow(['product_name', 'product_price', 'product_quantity', 'date_updated', 'brand_name'])
                 for product in session.query(Product).order_by(Product.product_id):
-                    productwriter.writerow([product.product_id, product.product_name, product.product_quantity, product.product_price, product.brand_id, product.date_updated])
+                    # Product Price Convert from Cents to $
+                    formatted_price = f"${product.product_price/100:.2f}"
+                    # Format date from YYYY-MM-DD to MM/DD/YYYY
+                    formatted_date = product.date_updated.strftime("%m/%d/%Y").replace('/0', '/').strip("0")
+                    # Search brand_name from brand_id
+                    brand_name_from_id = find_brand_name(product.brand_id)
+                    productwriter.writerow([product.product_name, formatted_price, product.product_quantity, formatted_date, brand_name_from_id])
+
 
             with open('brands_backup.csv', 'w', newline='') as csvfile:
                 brandswriter = csv.writer(csvfile)
-                brandswriter.writerow(['brand_id', 'brand_name'])
+                brandswriter.writerow(['brand_name'])
                 for brand in session.query(Brands).order_by(Brands.brand_id):
-                    brandswriter.writerow([brand.brand_id, brand.brand_name])
+                    brandswriter.writerow([brand.brand_name])
 
             print("Your database has been backed up!")
 
