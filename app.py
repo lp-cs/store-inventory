@@ -2,7 +2,7 @@ from models import (Base, session, Brands, Product, engine)
 
 from collections import Counter
 
-from datetime import datetime
+import datetime
 import csv
 import time
 
@@ -78,7 +78,7 @@ def add_csv_products():
             if product_in_db == None:
                 new_product = Product(product_name=product_name, product_quantity=product_quantity, product_price=product_price, date_updated=date_updated, brand_id=brand_id)
                 session.add(new_product)
-            elif product_in_db.date_updated < datetime.date(date_updated):
+            elif product_in_db.date_updated < date_updated:
                 product_in_db.product_quantity = product_quantity
                 product_in_db.product_price = product_price
                 product_in_db.date_updated = date_updated
@@ -130,7 +130,7 @@ def clean_date(date_str):
         month = int(split_date[0])
         day = int(split_date[1])
         year = int(split_date[2])
-        return_date = datetime(year, month, day)
+        return_date = datetime.date(year, month, day)
     except ValueError:
         print('Invalid date format. Please Try Again!')
         return
